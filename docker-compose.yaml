@@ -3,7 +3,9 @@ services:
     image: nats:latest
     ports:
       - "4222:4222"
-  
+# ==================================
+# CLIENT GATEWAY
+# ==================================  
   client-gateway:
     build: ./client-gateway
     ports:
@@ -17,6 +19,9 @@ services:
     depends_on:
       - nats-server
 
+# ==================================
+# PRODUCTS MICROSERVICE
+# ==================================
   products-ms:
     build: ./products-ms
     ports:
@@ -31,6 +36,9 @@ services:
     depends_on:
       - nats-server
 
+# ==================================
+# ORDERS MICROSERVICE
+# ==================================
   orders-ms:
     build: ./orders-ms
     ports:
@@ -46,6 +54,9 @@ services:
       - nats-server
       - orders-db
 
+# ==================================
+# ORDERS DATABASE
+# ==================================
   orders-db:
     container_name: orders_database
     image: postgres:16.2
@@ -58,3 +69,23 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
       - POSTGRES_DB=ordersdb
+
+# ==================================
+# PAYMENTS MICROSERVICE
+# ==================================
+  payments-ms:
+    build: ./payments-ms
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./payments-ms/src:/usr/src/app/src
+    command: pnpm start:dev
+    environment:
+      - PORT=${PAYMENTS_MS_PORT}
+      - NATS_SERVERS=nats://nats-server:4222      
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+    depends_on:
+      - nats-server
