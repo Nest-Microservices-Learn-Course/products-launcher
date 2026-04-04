@@ -1,96 +1,71 @@
 ---
-name: commit-and-push
-description: Commit and push all submodules with structured messages and update root repository
----
-
 name: commit-and-push-submodules
 description: >
-  Commit and push all git submodules and the root repository
-  using structured commit messages with bullet points.
+  This skill goes through every git submodule and the root repository.
+  It checks for changes, creates a structured commit message with a type
+  and a list of updated files, then commits and pushes those changes.
+---
 
 steps:
   - name: process-submodules
     run: |
-      git submodule foreach '
+      For each submodule in the project:
 
-      echo "-----------------------------"
-      echo "Processing submodule: $name"
+      - Print a separator and indicate which submodule is being processed.
+      - Detect the current branch.
+      - If the submodule is in a detached HEAD state, skip it.
 
-      CURRENT_BRANCH=$(git branch --show-current)
+      - Pull the latest changes from the remote repository using rebase.
 
-      if [ -z "$CURRENT_BRANCH" ]; then
-        echo "⚠️  Skipping $name (detached HEAD)"
-        exit 0
-      fi
+      - Check if there are any uncommitted changes.
+        - If there are changes:
+          - List all modified files.
+          - Build a bullet list describing each updated file.
+          - Determine the type of change (fix, feat, test, build, ci, perf, style, docs, revert or chore)
+            based on file names.
+          - Stage all changes.
+          - Create a commit using this format:
 
-      # Pull latest changes first
-      git pull --rebase origin $CURRENT_BRANCH
+            type: <general-description> "<submodule-name>"
 
-      if [ -n "$(git status --porcelain)" ]; then
-        echo "Changes detected in $name"
+            - change 1 description
+            - change 2 description
+            - change 3 description
+            - etc...
 
-        CHANGED_FILES=$(git diff --name-only)
+          - Push the changes to the current branch.
 
-        CHANGE_LIST=""
-        for file in $CHANGED_FILES; do
-          CHANGE_LIST="$CHANGE_LIST\n- updated $file"
-        done
-
-        TYPE="chore"
-        if echo "$CHANGED_FILES" | grep -qE "(fix|bug)"; then TYPE="fix"; fi
-        if echo "$CHANGED_FILES" | grep -qE "(feat|feature)"; then TYPE="feat"; fi
-        if echo "$CHANGED_FILES" | grep -qE "(test)"; then TYPE="test"; fi
-        if echo "$CHANGED_FILES" | grep -qE "(build|config)"; then TYPE="build"; fi
-
-        git add .
-
-        git commit -m "$TYPE: update $name
-
-      $CHANGE_LIST
-      "
-
-        git push origin $CURRENT_BRANCH
-      else
-        echo "No changes in $name"
-      fi
-      '
+        - If there are no changes:
+          - Print that there are no changes in the submodule.
 
   - name: process-root
     run: |
-      echo "-----------------------------"
-      echo "Processing root repository"
+      For the root repository:
 
-      CURRENT_BRANCH=$(git branch --show-current)
+      - Print a separator and indicate that the root repository is being processed.
+      - Detect the current branch.
+      - Pull the latest changes from the remote using rebase.
 
-      git pull --rebase origin $CURRENT_BRANCH
+      - Check if there are any uncommitted changes.
+        - If there are changes:
+          - List all modified files.
+          - Build a bullet list describing each updated file.
+          - Determine the type of change (fix, feat, test, build, ci, perf, style, docs, revert or chore)
+          - Stage all changes.
+          - Create a commit using this format:
 
-      if [ -n "$(git status --porcelain)" ]; then
-        echo "Changes detected in root repo"
+            type: <general-description> "<submodule-name>"
 
-        CHANGED_FILES=$(git diff --name-only)
+            - change 1 description
+            - change 2 description
+            - change 3 description
+            - etc...
 
-        CHANGE_LIST=""
-        for file in $CHANGED_FILES; do
-          CHANGE_LIST="$CHANGE_LIST\n- updated $file"
-        done
+          - Push the changes to the current branch.
 
-        TYPE="chore"
-        if echo "$CHANGED_FILES" | grep -qE "(fix|bug)"; then TYPE="fix"; fi
-        if echo "$CHANGED_FILES" | grep -qE "(feat|feature)"; then TYPE="feat"; fi
-        if echo "$CHANGED_FILES" | grep -qE "(test)"; then TYPE="test"; fi
-        if echo "$CHANGED_FILES" | grep -qE "(build|config)"; then TYPE="build"; fi
-
-        git add .
-
-        git commit -m "$TYPE: update root repository
-
-      $CHANGE_LIST
-      "
-
-        git push origin $CURRENT_BRANCH
-      else
-        echo "No changes in root repo"
-      fi
+        - If there are no changes:
+          - Print that there are no changes in the root repository.
 
   - name: done
-    run: echo "✅ All repositories are up to date"
+    run: |
+      Print a final message indicating that all repositories are up to date and general description of each one.
