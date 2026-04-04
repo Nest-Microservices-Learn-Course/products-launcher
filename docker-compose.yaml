@@ -29,7 +29,7 @@ services:
       - "3001:3001"
     volumes:
       - ./products-ms/src:/usr/src/app/src
-    command: pnpm start:dev
+    command: yarn start:dev
     environment:
       - PORT=3001
       - NATS_SERVERS=nats://nats-server:4222
