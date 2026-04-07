@@ -4,9 +4,11 @@ services:
     ports:
       # - "4222:4222"
       - "8222:8222"
+
 # ==================================
 # CLIENT GATEWAY
 # ==================================  
+
   client-gateway:
     build: ./client-gateway
     ports:
@@ -20,9 +22,27 @@ services:
     depends_on:
       - nats-server
 
+# ==================================
+# AUTH MICROSERVICE
+# ==================================
+
+  auth-ms:
+    build: ./auth-ms
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./auth-ms/src:/usr/src/app/src
+    command: pnpm start:dev
+    environment:
+      - PORT=3004
+      - NATS_SERVERS=nats://nats-server:4222      
+    depends_on:
+      - nats-server
+
 # # ==================================
 # # PRODUCTS MICROSERVICE
 # # ==================================
+
 #   products-ms:
 #     build: ./products-ms
 #     ports:
@@ -40,6 +60,7 @@ services:
 # # ==================================
 # # ORDERS MICROSERVICE
 # # ==================================
+
 #   orders-ms:
 #     build: ./orders-ms
 #     ports:
@@ -57,6 +78,7 @@ services:
 
 # # ==================================
 # # ORDERS DATABASE
+
 # # ==================================
 #   orders-db:
 #     container_name: orders_database
@@ -74,6 +96,7 @@ services:
 # # ==================================
 # # PAYMENTS MICROSERVICE
 # # ==================================
+
 #   payments-ms:
 #     build: ./payments-ms
 #     ports:
@@ -90,19 +113,3 @@ services:
 #       - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
 #     depends_on:
 #       - nats-server
-
-# ==================================
-# AUTH MICROSERVICE
-# ==================================
-  auth-ms:
-    build: ./auth-ms
-    ports:
-      - "3004:3004"
-    volumes:
-      - ./auth-ms/src:/usr/src/app/src
-    command: pnpm start:dev
-    environment:
-      - PORT=3004
-      - NATS_SERVERS=nats://nats-server:4222      
-    depends_on:
-      - nats-server
