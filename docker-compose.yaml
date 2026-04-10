@@ -32,11 +32,11 @@ services:
       - "3004:3004"
     volumes:
       - ./auth-ms/src:/usr/src/app/src
-    command: pnpm start:dev
+    command: yarn start:dev
     environment:
       - PORT=3004
       - NATS_SERVERS=nats://nats-server:4222
-      - MONGODB_URI=mongodb://mongo:123456@localhost:27017/admin
+      - DATABASE_URL=mongodb://mongo:123456@auth-database:27017/admin
     depends_on:
       - nats-server
       - auth-database
@@ -50,84 +50,84 @@ services:
     image: mongo:7.0
     restart: always
     volumes:
-      - ./mongo:/data/db
+      - ./auth-ms/mongo:/data/db
     ports:
       - 27017:27017
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongo
       - MONGO_INITDB_ROOT_PASSWORD=123456
 
+  
+# # ==================================
+# # PRODUCTS MICROSERVICE
+# # ==================================
 
-# ==================================
-# PRODUCTS MICROSERVICE
-# ==================================
+#   products-ms:
+#     build: ./products-ms
+#     ports:
+#       - "3001:3001"
+#     volumes:
+#       - ./products-ms/src:/usr/src/app/src
+#     command: yarn start:dev
+#     environment:
+#       - PORT=3001
+#       - NATS_SERVERS=nats://nats-server:4222
+#       - DATABASE_URL=file:./dev.db
+#     depends_on:
+#       - nats-server
 
-  products-ms:
-    build: ./products-ms
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./products-ms/src:/usr/src/app/src
-    command: yarn start:dev
-    environment:
-      - PORT=3001
-      - NATS_SERVERS=nats://nats-server:4222
-      - DATABASE_URL=file:./dev.db
-    depends_on:
-      - nats-server
+# # ==================================
+# # ORDERS MICROSERVICE
+# # ==================================
 
-# ==================================
-# ORDERS MICROSERVICE
-# ==================================
+#   orders-ms:
+#     build: ./orders-ms
+#     ports:
+#       - "3002:3002"
+#     volumes:
+#       - ./orders-ms/src:/usr/src/app/src
+#     command: pnpm start:dev
+#     environment:
+#       - PORT=3002
+#       - DATABASE_URL=postgresql://postgres:123456@orders-db:5432/ordersdb?schema=public
+#       - NATS_SERVERS=nats://nats-server:4222      
+#     depends_on:
+#       - nats-server
+#       - orders-db
 
-  orders-ms:
-    build: ./orders-ms
-    ports:
-      - "3002:3002"
-    volumes:
-      - ./orders-ms/src:/usr/src/app/src
-    command: pnpm start:dev
-    environment:
-      - PORT=3002
-      - DATABASE_URL=postgresql://postgres:123456@orders-db:5432/ordersdb?schema=public
-      - NATS_SERVERS=nats://nats-server:4222      
-    depends_on:
-      - nats-server
-      - orders-db
+# # ==================================
+# # ORDERS DATABASE
+# # ==================================
+#   orders-db:
+#     container_name: orders_database
+#     image: postgres:16.2
+#     restart: always
+#     volumes:
+#       - ./orders-ms/postgres:/var/lib/postgresql/data
+#     ports:
+#       - 5432:5432
+#     environment:
+#       - POSTGRES_USER=postgres
+#       - POSTGRES_PASSWORD=123456
+#       - POSTGRES_DB=ordersdb
 
-# ==================================
-# ORDERS DATABASE
-# ==================================
-  orders-db:
-    container_name: orders_database
-    image: postgres:16.2
-    restart: always
-    volumes:
-      - ./orders-ms/postgres:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=123456
-      - POSTGRES_DB=ordersdb
+# # ==================================
+# # PAYMENTS MICROSERVICE
+# # ==================================
 
-# ==================================
-# PAYMENTS MICROSERVICE
-# ==================================
-
-  payments-ms:
-    build: ./payments-ms
-    ports:
-      - "3003:3003"
-    volumes:
-      - ./payments-ms/src:/usr/src/app/src
-    command: pnpm start:dev
-    environment:
-      - PORT=${PAYMENTS_MS_PORT}
-      - NATS_SERVERS=nats://nats-server:4222      
-      - STRIPE_SECRET=${STRIPE_SECRET}
-      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
-      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
-      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
-    depends_on:
-      - nats-server
+#   payments-ms:
+#     build: ./payments-ms
+#     ports:
+#       - "3003:3003"
+#     volumes:
+#       - ./payments-ms/src:/usr/src/app/src
+#     command: pnpm start:dev
+#     environment:
+#       - PORT=${PAYMENTS_MS_PORT}
+#       - NATS_SERVERS=nats://nats-server:4222      
+#       - STRIPE_SECRET=${STRIPE_SECRET}
+#       - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
+#       - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+#       - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+#     depends_on:
+#       - nats-server
