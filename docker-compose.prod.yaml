@@ -1,0 +1,134 @@
+services:
+  nats-server:
+    image: nats:latest
+    # ports:
+    #   - "4222:4222"
+    #   - "8222:8222"
+
+# ==================================
+# CLIENT GATEWAY
+# ==================================  
+
+  client-gateway:
+    build: 
+      context: ./client-gateway
+      dockerfile: dockerfile.prod
+    image: client-gateway-prod
+    ports:
+      - ${CLIENT_GATEWAY_PORT}:${CLIENT_GATEWAY_PORT}
+    environment:
+      - PORT=${CLIENT_GATEWAY_PORT}
+      - NATS_SERVERS=nats://nats-server:4222
+
+# # ==================================
+# # AUTH MICROSERVICE
+# # ==================================
+
+#   auth-ms:
+#     build: 
+#       context: ./auth-ms
+#       dockerfile: dockerfile.prod
+#     image: auth-ms-prod
+#     environment:
+#       - PORT=3003
+#       - NATS_SERVERS=nats://nats-server:4222
+#       - DATABASE_URL=mongodb://mongo:123456@auth-database:27017/admin
+#       - JWT_SECRET=${JWT_SECRET}
+#     depends_on:
+#       - nats-server
+#       - auth-database
+
+# # ==================================
+# # AUTH DATABASE
+# # ==================================
+
+#   auth-database:
+#     container_name: auth_database
+#     image: mongo:7.0
+#     restart: always
+#     volumes:
+#       - ./auth-ms/mongo:/data/db
+#       - ./auth-ms/keyfile:/opt/keyfile
+#     ports:
+#       - 27017:27017
+#     environment:
+#       - MONGO_INITDB_ROOT_USERNAME=mongo
+#       - MONGO_INITDB_ROOT_PASSWORD=123456
+#     command: mongod --replSet rs0 --bind_ip_all --keyFile /opt/keyfile/keyfile --auth
+
+# ==================================
+# PRODUCTS MICROSERVICE
+# ==================================
+
+  products-ms:
+    build: 
+      context: ./products-ms
+      dockerfile: dockerfile.prod
+    image: products-ms-prod
+    ports:
+      - "3001:3001"
+    # volumes:
+    #   - ./products-ms/src:/usr/src/app/src
+    # command: yarn start:dev
+    environment:
+      - PORT=3001
+      - NATS_SERVERS=nats://nats-server:4222
+      - DATABASE_URL=file:./dev.db
+    # depends_on:
+    #   - nats-server
+
+# # ==================================
+# # ORDERS MICROSERVICE
+# # ==================================
+
+#   orders-ms:
+#     build: ./orders-ms
+#     ports:
+#       - "3002:3002"
+#     volumes:
+#       - ./orders-ms/src:/usr/src/app/src
+#     command: pnpm start:dev
+#     environment:
+#       - PORT=3002
+#       - DATABASE_URL=postgresql://postgres:123456@orders-db:5432/ordersdb?schema=public
+#       - NATS_SERVERS=nats://nats-server:4222      
+#     depends_on:
+#       - nats-server
+#       - orders-db
+
+# # ==================================
+# # ORDERS DATABASE
+# # ==================================
+#   orders-db:
+#     container_name: orders_database
+#     image: postgres:16.2
+#     restart: always
+#     volumes:
+#       - ./orders-ms/postgres:/var/lib/postgresql/data
+#     ports:
+#       - 5432:5432
+#     environment:
+#       - POSTGRES_USER=postgres
+#       - POSTGRES_PASSWORD=123456
+#       - POSTGRES_DB=ordersdb
+
+# ==================================
+# PAYMENTS MICROSERVICE
+# ==================================
+
+  payments-ms:
+    build: 
+      context: ./payments-ms
+      dockerfile: dockerfile.prod
+    image: payments-ms-prod
+    ports:
+      - "${PAYMENTS_MS_PORT}:${PAYMENTS_MS_PORT}"
+    environment:
+      - PORT=${PAYMENTS_MS_PORT}
+      - NATS_SERVERS=nats://nats-server:4222      
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_ENDPOINT_SECRET=${STRIPE_ENDPOINT_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+    depends_on:
+      - nats-server

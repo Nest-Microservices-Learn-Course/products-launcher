@@ -5,6 +5,15 @@
 3. Run the command `git submodule update --init --recursive` to rebuild the submodules
 4. Run the command `docker compose up --build`
 
+## Production Build
+
+To build the production images for all services, use the following command:
+
+```bash
+docker compose -f docker-compose.prod.yaml build
+```
+
+This will build optimized production images for all microservices using the production Dockerfiles.
 
 ### Steps to create Git Submodules
 
